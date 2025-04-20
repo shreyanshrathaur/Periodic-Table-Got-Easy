@@ -1,5 +1,7 @@
 An interactive, mobile-friendly periodic table with a sleek dark theme and vibrant colors. Click any element to reveal a detailed flashcard featuring atomic properties, glowing images, and quick-access links to Wikipedia, Lenntech, and WebElements. Includes built-in features like "Download as Image" and "Share Flashcard" via link. Fully responsive and offline-ready with clean, modern UI. Great for students, educators, or chemistry enthusiasts
 
+TRY IT : https://shreyanshrathaur.github.io/Periodic-Table-Got-Easy/
+
 ## 🌟 Features
 
 - 🔬 Click on any element to open a detailed flashcard
