@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modern Periodic Table</title>
+  <style>
+    :root {
+      --bg-color: #000000;
+      --text-color: #ffffff;
+      --header-bg: #1a1a2e;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      background-color: var(--header-bg);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    }
+
+    .title {
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+
+    main {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      overflow-x: auto;
+    }
+
+    .table-container {
+      display: grid;
+      grid-template-columns: repeat(18, 50px);
+      gap: 4px;
+      max-width: 100%;
+    }
+
+    .element {
+      width: 50px;
+      height: 50px;
+      background-color: #2b2d42;
+      color: #ffffff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .element:hover {
+      transform: scale(1.1);
+      box-shadow: 0 0 10px #8a2be2;
+    }
+
+    .lanthanoid-label,
+    .actinoid-label {
+      grid-column: span 18;
+      font-weight: bold;
+      margin-top: 1rem;
+      text-align: left;
+    }
+
+    .flashcard-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.75);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .flashcard {
+      background-color: #0f0f1a;
+      color: #ffffff;
+      border: 1px solid #8a2be2;
+      border-radius: 10px;
+      padding: 1rem;
+      width: 90%;
+      max-width: 400px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 0 20px #8a2be2;
+      position: relative;
+      animation: popIn 0.4s ease-out;
+    }
+
+    .flashcard-close {
+      position: absolute;
+      top: 8px;
+      right: 12px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #ffffff;
+    }
+
+    .element-image {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+    }
+
+    .element-image img {
+      max-width: 100%;
+      border-radius: 10px;
+      border: 2px solid #6c63ff;
+      box-shadow: 0 0 15px #6c63ff, 0 0 30px #8a2be2;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .element-image img:hover {
+      transform: scale(1.02);
+      box-shadow: 0 0 20px #7b68ee, 0 0 40px #8a2be2;
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.6);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    .alkali { background-color: #4b0082; color: white; }
+    .alkaline { background-color: #6a0dad; color: white; }
+    .transition { background-color: #483d8b; color: white; }
+    .post-transition { background-color: #5d3fd3; color: white; }
+    .metalloid { background-color: #7b68ee; color: black; }
+    .nonmetal { background-color: #9f7aea; color: black; }
+    .halogen { background-color: #8a2be2; color: white; }
+    .noble { background-color: #6c63ff; color: white; }
+    .lanthanoid { background-color: #3f51b5; color: white; }
+    .actinoid { background-color: #5c6bc0; color: white; }
+
+    @media (max-width: 768px) {
+      .table-container {
+        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+      }
+    }
+
+    @media (max-width: 480px) {
+      .table-container {
+        grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+      }
+
+      .title {
+        font-size: 1.3rem;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title">MODERN PERIODIC TABLE</div>
+  </header>
+
+  <main>
+    <div class="table-container" id="table-container"></div>
+    <div class="lanthanoid-label">Lanthanoids</div>
+    <div class="table-container" id="lanthanoids"></div>
+    <div class="actinoid-label">Actinoids</div>
+    <div class="table-container" id="actinoids"></div>
+  </main>
+
+  <div id="flashcard-overlay" class="flashcard-overlay">
+    <div id="flashcard" class="flashcard">
+      <span class="flashcard-close" onclick="closeFlashcard()">✖</span>
+    </div>
+  </div>
+
+  <script src="flashcardData_updated.js"></script>
+  <script>
+    const elements = [
+      [1, "H", 1], [2, "He", 18], [3, "Li", 1], [4, "Be", 2], [5, "B", 13], [6, "C", 14], [7, "N", 15], [8, "O", 16], [9, "F", 17], [10, "Ne", 18],
+      [11, "Na", 1], [12, "Mg", 2], [13, "Al", 13], [14, "Si", 14], [15, "P", 15], [16, "S", 16], [17, "Cl", 17], [18, "Ar", 18],
+      [19, "K", 1], [20, "Ca", 2], [21, "Sc", 3], [22, "Ti", 4], [23, "V", 5], [24, "Cr", 6], [25, "Mn", 7], [26, "Fe", 8], [27, "Co", 9], [28, "Ni", 10],
+      [29, "Cu", 11], [30, "Zn", 12], [31, "Ga", 13], [32, "Ge", 14], [33, "As", 15], [34, "Se", 16], [35, "Br", 17], [36, "Kr", 18],
+      [37, "Rb", 1], [38, "Sr", 2], [39, "Y", 3], [40, "Zr", 4], [41, "Nb", 5], [42, "Mo", 6], [43, "Tc", 7], [44, "Ru", 8], [45, "Rh", 9], [46, "Pd", 10],
+      [47, "Ag", 11], [48, "Cd", 12], [49, "In", 13], [50, "Sn", 14], [51, "Sb", 15], [52, "Te", 16], [53, "I", 17], [54, "Xe", 18],
+      [55, "Cs", 1], [56, "Ba", 2], [72, "Hf", 4], [73, "Ta", 5], [74, "W", 6], [75, "Re", 7], [76, "Os", 8], [77, "Ir", 9], [78, "Pt", 10],
+      [79, "Au", 11], [80, "Hg", 12], [81, "Tl", 13], [82, "Pb", 14], [83, "Bi", 15], [84, "Po", 16], [85, "At", 17], [86, "Rn", 18],
+      [87, "Fr", 1], [88, "Ra", 2], [104, "Rf", 4], [105, "Db", 5], [106, "Sg", 6], [107, "Bh", 7], [108, "Hs", 8], [109, "Mt", 9],
+      [110, "Ds", 10], [111, "Rg", 11], [112, "Cn", 12], [113, "Nh", 13], [114, "Fl", 14], [115, "Mc", 15], [116, "Lv", 16], [117, "Ts", 17], [118, "Og", 18]
+    ];
+
+    const lanthanoids = [[57, "La", 3], [58, "Ce", 4], [59, "Pr", 5], [60, "Nd", 6], [61, "Pm", 7], [62, "Sm", 8], [63, "Eu", 9], [64, "Gd", 10], [65, "Tb", 11], [66, "Dy", 12], [67, "Ho", 13], [68, "Er", 14], [69, "Tm", 15], [70, "Yb", 16], [71, "Lu", 17]];
+    const actinoids = [[89, "Ac", 3], [90, "Th", 4], [91, "Pa", 5], [92, "U", 6], [93, "Np", 7], [94, "Pu", 8], [95, "Am", 9], [96, "Cm", 10], [97, "Bk", 11], [98, "Cf", 12], [99, "Es", 13], [100, "Fm", 14], [101, "Md", 15], [102, "No", 16], [103, "Lr", 17]];
+
+    const container = document.getElementById("table-container");
+    const lanthaRow = document.getElementById("lanthanoids");
+    const actinoRow = document.getElementById("actinoids");
+
+    function renderElements(list, target, className = "") {
+      list.forEach(([num, sym, col]) => {
+        const el = document.createElement("div");
+        el.className = `element ${className}`;
+        el.style.gridColumn = col;
+        el.innerHTML = `${sym}<br><small>${num}</small>`;
+        el.onclick = () => showFlashcard(sym);
+        target.appendChild(el);
+      });
+    }
+
+    renderElements(elements, container);
+    renderElements(lanthanoids, lanthaRow, "lanthanoid");
+    renderElements(actinoids, actinoRow, "actinoid");
+
+    function showFlashcard(symbol) {
+      const data = flashcardData[symbol];
+      const overlay = document.getElementById("flashcard-overlay");
+      const card = document.getElementById("flashcard");
+
+      if (data) {
+        card.innerHTML = `
+          <span class="flashcard-close" onclick="closeFlashcard()">✖</span>
+          <h3>${data.name} (${symbol})</h3>
+          <div class="element-image">
+            <img src="${data.image}" alt="${data.name}" />
+          </div>
+          <p><strong>Atomic Number:</strong> ${data.number}</p>
+          <p><strong>Type:</strong> ${data.type}</p>
+          <p><strong>Standard State:</strong> ${data.state}</p>
+          <p><strong>Atomic Mass:</strong> ${data.mass}</p>
+          <p><strong>Electron Configuration:</strong> ${data.config}</p>
+          <p><strong>Oxidation States:</strong> ${data.oxidation}</p>
+          <p><strong>Electronegativity:</strong> ${data.electronegativity}</p>
+          <p><strong>Atomic Radius:</strong> ${data.radius}</p>
+          <p><strong>Ionization Energy:</strong> ${data.ionization}</p>
+          <p><strong>Electron Affinity:</strong> ${data.affinity}</p>
+          <p><strong>Melting Point:</strong> ${data.melting}</p>
+          <p><strong>Boiling Point:</strong> ${data.boiling}</p>
+          <p><strong>Density:</strong> ${data.density}</p>
+          <p><strong>Year Discovered:</strong> ${data.discovered}</p>
+          <hr />
+          <p><strong>More about ${data.name}:</strong></p>
+          <ul>
+            <li><a href="${data.wiki}" target="_blank">Wikipedia</a></li>
+            <li><a href="https://www.lenntech.com/periodic/elements/${symbol.toLowerCase()}.htm" target="_blank">Lenntech</a></li>
+            <li><a href="https://www.webelements.com/${data.name.toLowerCase()}/" target="_blank">WebElements</a></li>
+          </ul>
+        `;
+      } else {
+        card.innerHTML = `<p>No data available for ${symbol}</p>`;
+      }
+
+      overlay.style.display = "flex";
+    }
+
+    function closeFlashcard() {
+      document.getElementById("flashcard-overlay").style.display = "none";
+    }
+
+    document.getElementById("flashcard-overlay").addEventListener("click", (e) => {
+      const card = document.getElementById("flashcard");
+      if (!card.contains(e.target)) {
+        closeFlashcard();
+      }
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        closeFlashcard();
+      }
+    });
+  </script>
+</body>
+</html>
