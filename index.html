@@ -6,9 +6,19 @@
   <title>Modern Periodic Table</title>
   <style>
     :root {
-      --bg-color: #000000;
+      --bg-color: #121212;
       --text-color: #ffffff;
       --header-bg: #1a1a2e;
+      --card-bg: #1e1e2e;
+      --primary: #8a2be2;
+      --secondary: #6c63ff;
+    }
+
+    [data-theme="light"] {
+      --bg-color: #f5f5f5;
+      --text-color: #333333;
+      --header-bg: #e0e0e0;
+      --card-bg: #ffffff;
     }
 
     body {
@@ -16,6 +26,7 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background-color: var(--bg-color);
       color: var(--text-color);
+      transition: background-color 0.3s, color 0.3s;
     }
 
     header {
@@ -24,12 +35,64 @@
       align-items: center;
       padding: 1rem 2rem;
       background-color: var(--header-bg);
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      position: relative;
     }
 
     .title {
       font-size: 1.8rem;
       font-weight: bold;
+      color: var(--primary);
+    }
+
+    .header-controls {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .search-container {
+      position: relative;
+    }
+
+    #search {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      border: 1px solid var(--primary);
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      width: 200px;
+    }
+
+    .search-results {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      background-color: var(--card-bg);
+      border: 1px solid var(--primary);
+      border-radius: 0 0 5px 5px;
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+
+    .search-item {
+      padding: 0.5rem;
+      cursor: pointer;
+    }
+
+    .search-item:hover {
+      background-color: rgba(138, 43, 226, 0.2);
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      color: var(--text-color);
+      font-size: 1.2rem;
+      cursor: pointer;
     }
 
     main {
@@ -42,14 +105,15 @@
 
     .table-container {
       display: grid;
-      grid-template-columns: repeat(18, 50px);
+      grid-template-columns: repeat(18, minmax(40px, 1fr));
       gap: 4px;
       max-width: 100%;
+      margin-bottom: 1rem;
     }
 
     .element {
-      width: 50px;
-      height: 50px;
+      width: 100%;
+      aspect-ratio: 1/1;
       background-color: #2b2d42;
       color: #ffffff;
       display: flex;
@@ -59,12 +123,44 @@
       font-size: 0.7rem;
       border-radius: 4px;
       cursor: pointer;
-      transition: transform 0.2s;
+      transition: transform 0.2s, box-shadow 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .element::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+      z-index: 1;
     }
 
     .element:hover {
       transform: scale(1.1);
-      box-shadow: 0 0 10px #8a2be2;
+      box-shadow: 0 0 10px var(--primary);
+      z-index: 10;
+    }
+
+    .element-number {
+      font-size: 0.6rem;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+    }
+
+    .element-symbol {
+      font-size: 1.2rem;
+      font-weight: bold;
+      z-index: 2;
+    }
+
+    .element-name {
+      font-size: 0.6rem;
+      z-index: 2;
     }
 
     .lanthanoid-label,
@@ -73,6 +169,9 @@
       font-weight: bold;
       margin-top: 1rem;
       text-align: left;
+      width: 100%;
+      padding-left: 0.5rem;
+      color: var(--primary);
     }
 
     .flashcard-overlay {
@@ -89,47 +188,92 @@
     }
 
     .flashcard {
-      background-color: #0f0f1a;
-      color: #ffffff;
-      border: 1px solid #8a2be2;
+      background-color: var(--card-bg);
+      color: var(--text-color);
+      border: 1px solid var(--primary);
       border-radius: 10px;
-      padding: 1rem;
+      padding: 1.5rem;
       width: 90%;
-      max-width: 400px;
+      max-width: 500px;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 0 20px #8a2be2;
+      box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
       position: relative;
       animation: popIn 0.4s ease-out;
     }
 
     .flashcard-close {
       position: absolute;
-      top: 8px;
+      top: 12px;
       right: 12px;
-      font-size: 1.2rem;
+      font-size: 1.5rem;
       cursor: pointer;
-      color: #ffffff;
+      color: var(--text-color);
+      transition: color 0.2s;
+    }
+
+    .flashcard-close:hover {
+      color: var(--primary);
     }
 
     .element-image {
       width: 100%;
       display: flex;
       justify-content: center;
-      margin-bottom: 1rem;
+      margin: 1rem 0;
     }
 
     .element-image img {
-      max-width: 100%;
+      max-width: 200px;
+      max-height: 200px;
       border-radius: 10px;
-      border: 2px solid #6c63ff;
-      box-shadow: 0 0 15px #6c63ff, 0 0 30px #8a2be2;
-      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border: 2px solid var(--secondary);
+      box-shadow: 0 0 15px rgba(108, 99, 255, 0.5);
+      transition: transform 0.3s ease;
     }
 
     .element-image img:hover {
-      transform: scale(1.02);
-      box-shadow: 0 0 20px #7b68ee, 0 0 40px #8a2be2;
+      transform: scale(1.05);
+    }
+
+    .property-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+
+    .property {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .property-label {
+      font-weight: bold;
+      font-size: 0.9rem;
+      color: var(--primary);
+    }
+
+    .property-value {
+      font-size: 0.9rem;
+    }
+
+    .flashcard-links {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .flashcard-link {
+      color: var(--secondary);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .flashcard-link:hover {
+      color: var(--primary);
+      text-decoration: underline;
     }
 
     @keyframes popIn {
@@ -143,36 +287,72 @@
       }
     }
 
-    .alkali { background-color: #4b0082; color: white; }
-    .alkaline { background-color: #6a0dad; color: white; }
-    .transition { background-color: #483d8b; color: white; }
-    .post-transition { background-color: #5d3fd3; color: white; }
-    .metalloid { background-color: #7b68ee; color: black; }
-    .nonmetal { background-color: #9f7aea; color: black; }
-    .halogen { background-color: #8a2be2; color: white; }
-    .noble { background-color: #6c63ff; color: white; }
-    .lanthanoid { background-color: #3f51b5; color: white; }
-    .actinoid { background-color: #5c6bc0; color: white; }
+    /* Element Category Colors */
+    .alkali { background-color: #FF6B6B; }
+    .alkaline { background-color: #FFA07A; }
+    .transition { background-color: #FFD166; color: #333; }
+    .post-transition { background-color: #06D6A0; }
+    .metalloid { background-color: #118AB2; }
+    .nonmetal { background-color: #073B4C; }
+    .halogen { background-color: #EF476F; }
+    .noble { background-color: #7209B7; }
+    .lanthanoid { background-color: #3A86FF; }
+    .actinoid { background-color: #8338EC; }
+    .unknown { background-color: #8D99AE; }
 
-    @media (max-width: 768px) {
-      .table-container {
-        grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
-      }
+    /* Tooltip */
+    .tooltip {
+      position: absolute;
+      background-color: var(--card-bg);
+      border: 1px solid var(--primary);
+      padding: 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      z-index: 100;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      max-width: 200px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
 
-    @media (max-width: 480px) {
+    /* Responsive */
+    @media (max-width: 768px) {
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .header-controls {
+        width: 100%;
+        justify-content: space-between;
+      }
+
+      #search {
+        width: 150px;
+      }
+
       .table-container {
         grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
       }
 
+      .element-symbol {
+        font-size: 1rem;
+      }
+    }
+
+    @media (max-width: 480px) {
       .title {
-        font-size: 1.3rem;
+        font-size: 1.4rem;
       }
 
-      header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 0.5rem;
+      .property-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .flashcard {
+        padding: 1rem;
       }
     }
   </style>
@@ -180,7 +360,13 @@
 <body>
   <header>
     <div class="title">MODERN PERIODIC TABLE</div>
-    <p> Flashcard contains wrong Info Fixing Soon </p>
+    <div class="header-controls">
+      <div class="search-container">
+        <input type="text" id="search" placeholder="Search elements...">
+        <div class="search-results" id="search-results"></div>
+      </div>
+      <button class="theme-toggle" id="theme-toggle">🌓</button>
+    </div>
   </header>
 
   <main>
@@ -194,82 +380,262 @@
   <div id="flashcard-overlay" class="flashcard-overlay">
     <div id="flashcard" class="flashcard">
       <span class="flashcard-close" onclick="closeFlashcard()">✖</span>
+      <div id="flashcard-content"></div>
     </div>
   </div>
 
+  <div class="tooltip" id="tooltip"></div>
+
   <script src="flashcardData_updated.js"></script>
   <script>
+    // Element data with proper categories
     const elements = [
-      [1, "H", 1], [2, "He", 18], [3, "Li", 1], [4, "Be", 2], [5, "B", 13], [6, "C", 14], [7, "N", 15], [8, "O", 16], [9, "F", 17], [10, "Ne", 18],
-      [11, "Na", 1], [12, "Mg", 2], [13, "Al", 13], [14, "Si", 14], [15, "P", 15], [16, "S", 16], [17, "Cl", 17], [18, "Ar", 18],
-      [19, "K", 1], [20, "Ca", 2], [21, "Sc", 3], [22, "Ti", 4], [23, "V", 5], [24, "Cr", 6], [25, "Mn", 7], [26, "Fe", 8], [27, "Co", 9], [28, "Ni", 10],
-      [29, "Cu", 11], [30, "Zn", 12], [31, "Ga", 13], [32, "Ge", 14], [33, "As", 15], [34, "Se", 16], [35, "Br", 17], [36, "Kr", 18],
-      [37, "Rb", 1], [38, "Sr", 2], [39, "Y", 3], [40, "Zr", 4], [41, "Nb", 5], [42, "Mo", 6], [43, "Tc", 7], [44, "Ru", 8], [45, "Rh", 9], [46, "Pd", 10],
-      [47, "Ag", 11], [48, "Cd", 12], [49, "In", 13], [50, "Sn", 14], [51, "Sb", 15], [52, "Te", 16], [53, "I", 17], [54, "Xe", 18],
-      [55, "Cs", 1], [56, "Ba", 2], [72, "Hf", 4], [73, "Ta", 5], [74, "W", 6], [75, "Re", 7], [76, "Os", 8], [77, "Ir", 9], [78, "Pt", 10],
-      [79, "Au", 11], [80, "Hg", 12], [81, "Tl", 13], [82, "Pb", 14], [83, "Bi", 15], [84, "Po", 16], [85, "At", 17], [86, "Rn", 18],
-      [87, "Fr", 1], [88, "Ra", 2], [104, "Rf", 4], [105, "Db", 5], [106, "Sg", 6], [107, "Bh", 7], [108, "Hs", 8], [109, "Mt", 9],
-      [110, "Ds", 10], [111, "Rg", 11], [112, "Cn", 12], [113, "Nh", 13], [114, "Fl", 14], [115, "Mc", 15], [116, "Lv", 16], [117, "Ts", 17], [118, "Og", 18]
+      [1, "H", 1, "nonmetal"], [2, "He", 18, "noble"], 
+      [3, "Li", 1, "alkali"], [4, "Be", 2, "alkaline"], [5, "B", 13, "metalloid"], 
+      [6, "C", 14, "nonmetal"], [7, "N", 15, "nonmetal"], [8, "O", 16, "nonmetal"], 
+      [9, "F", 17, "halogen"], [10, "Ne", 18, "noble"],
+      [11, "Na", 1, "alkali"], [12, "Mg", 2, "alkaline"], [13, "Al", 13, "post-transition"], 
+      [14, "Si", 14, "metalloid"], [15, "P", 15, "nonmetal"], [16, "S", 16, "nonmetal"], 
+      [17, "Cl", 17, "halogen"], [18, "Ar", 18, "noble"],
+      [19, "K", 1, "alkali"], [20, "Ca", 2, "alkaline"], [21, "Sc", 3, "transition"], 
+      [22, "Ti", 4, "transition"], [23, "V", 5, "transition"], [24, "Cr", 6, "transition"], 
+      [25, "Mn", 7, "transition"], [26, "Fe", 8, "transition"], [27, "Co", 9, "transition"], 
+      [28, "Ni", 10, "transition"],
+      [29, "Cu", 11, "transition"], [30, "Zn", 12, "transition"], [31, "Ga", 13, "post-transition"], 
+      [32, "Ge", 14, "metalloid"], [33, "As", 15, "metalloid"], [34, "Se", 16, "nonmetal"], 
+      [35, "Br", 17, "halogen"], [36, "Kr", 18, "noble"],
+      [37, "Rb", 1, "alkali"], [38, "Sr", 2, "alkaline"], [39, "Y", 3, "transition"], 
+      [40, "Zr", 4, "transition"], [41, "Nb", 5, "transition"], [42, "Mo", 6, "transition"], 
+      [43, "Tc", 7, "transition"], [44, "Ru", 8, "transition"], [45, "Rh", 9, "transition"], 
+      [46, "Pd", 10, "transition"],
+      [47, "Ag", 11, "transition"], [48, "Cd", 12, "transition"], [49, "In", 13, "post-transition"], 
+      [50, "Sn", 14, "post-transition"], [51, "Sb", 15, "metalloid"], [52, "Te", 16, "metalloid"], 
+      [53, "I", 17, "halogen"], [54, "Xe", 18, "noble"],
+      [55, "Cs", 1, "alkali"], [56, "Ba", 2, "alkaline"], [72, "Hf", 4, "transition"], 
+      [73, "Ta", 5, "transition"], [74, "W", 6, "transition"], [75, "Re", 7, "transition"], 
+      [76, "Os", 8, "transition"], [77, "Ir", 9, "transition"], [78, "Pt", 10, "transition"],
+      [79, "Au", 11, "transition"], [80, "Hg", 12, "transition"], [81, "Tl", 13, "post-transition"], 
+      [82, "Pb", 14, "post-transition"], [83, "Bi", 15, "post-transition"], [84, "Po", 16, "metalloid"], 
+      [85, "At", 17, "halogen"], [86, "Rn", 18, "noble"],
+      [87, "Fr", 1, "alkali"], [88, "Ra", 2, "alkaline"], [104, "Rf", 4, "transition"], 
+      [105, "Db", 5, "transition"], [106, "Sg", 6, "transition"], [107, "Bh", 7, "transition"], 
+      [108, "Hs", 8, "transition"], [109, "Mt", 9, "transition"],
+      [110, "Ds", 10, "transition"], [111, "Rg", 11, "transition"], [112, "Cn", 12, "transition"], 
+      [113, "Nh", 13, "unknown"], [114, "Fl", 14, "unknown"], [115, "Mc", 15, "unknown"], 
+      [116, "Lv", 16, "unknown"], [117, "Ts", 17, "unknown"], [118, "Og", 18, "unknown"]
     ];
 
-    const lanthanoids = [[57, "La", 3], [58, "Ce", 4], [59, "Pr", 5], [60, "Nd", 6], [61, "Pm", 7], [62, "Sm", 8], [63, "Eu", 9], [64, "Gd", 10], [65, "Tb", 11], [66, "Dy", 12], [67, "Ho", 13], [68, "Er", 14], [69, "Tm", 15], [70, "Yb", 16], [71, "Lu", 17]];
-    const actinoids = [[89, "Ac", 3], [90, "Th", 4], [91, "Pa", 5], [92, "U", 6], [93, "Np", 7], [94, "Pu", 8], [95, "Am", 9], [96, "Cm", 10], [97, "Bk", 11], [98, "Cf", 12], [99, "Es", 13], [100, "Fm", 14], [101, "Md", 15], [102, "No", 16], [103, "Lr", 17]];
+    const lanthanoids = [
+      [57, "La", 3, "lanthanoid"], [58, "Ce", 4, "lanthanoid"], 
+      [59, "Pr", 5, "lanthanoid"], [60, "Nd", 6, "lanthanoid"], 
+      [61, "Pm", 7, "lanthanoid"], [62, "Sm", 8, "lanthanoid"], 
+      [63, "Eu", 9, "lanthanoid"], [64, "Gd", 10, "lanthanoid"], 
+      [65, "Tb", 11, "lanthanoid"], [66, "Dy", 12, "lanthanoid"], 
+      [67, "Ho", 13, "lanthanoid"], [68, "Er", 14, "lanthanoid"], 
+      [69, "Tm", 15, "lanthanoid"], [70, "Yb", 16, "lanthanoid"], 
+      [71, "Lu", 17, "lanthanoid"]
+    ];
+
+    const actinoids = [
+      [89, "Ac", 3, "actinoid"], [90, "Th", 4, "actinoid"], 
+      [91, "Pa", 5, "actinoid"], [92, "U", 6, "actinoid"], 
+      [93, "Np", 7, "actinoid"], [94, "Pu", 8, "actinoid"], 
+      [95, "Am", 9, "actinoid"], [96, "Cm", 10, "actinoid"], 
+      [97, "Bk", 11, "actinoid"], [98, "Cf", 12, "actinoid"], 
+      [99, "Es", 13, "actinoid"], [100, "Fm", 14, "actinoid"], 
+      [101, "Md", 15, "actinoid"], [102, "No", 16, "actinoid"], 
+      [103, "Lr", 17, "actinoid"]
+    ];
 
     const container = document.getElementById("table-container");
     const lanthaRow = document.getElementById("lanthanoids");
     const actinoRow = document.getElementById("actinoids");
+    const searchInput = document.getElementById("search");
+    const searchResults = document.getElementById("search-results");
+    const themeToggle = document.getElementById("theme-toggle");
+    const tooltip = document.getElementById("tooltip");
 
-    function renderElements(list, target, className = "") {
-      list.forEach(([num, sym, col]) => {
+    // Render elements with proper categories
+    function renderElements(list, target) {
+      list.forEach(([num, sym, col, category]) => {
         const el = document.createElement("div");
-        el.className = `element ${className}`;
+        el.className = `element ${category}`;
         el.style.gridColumn = col;
-        el.innerHTML = `${sym}<br><small>${num}</small>`;
+        el.innerHTML = `
+          <span class="element-number">${num}</span>
+          <span class="element-symbol">${sym}</span>
+          <span class="element-name">${flashcardData[sym]?.name || ''}</span>
+        `;
+        
+        // Add data attributes for searching
+        el.dataset.symbol = sym;
+        el.dataset.name = flashcardData[sym]?.name || '';
+        el.dataset.number = num;
+        
         el.onclick = () => showFlashcard(sym);
+        
+        // Add hover tooltip
+        el.addEventListener('mouseenter', (e) => {
+          const rect = el.getBoundingClientRect();
+          tooltip.style.left = `${rect.left + rect.width/2}px`;
+          tooltip.style.top = `${rect.top - 10}px`;
+          tooltip.style.transform = 'translate(-50%, -100%)';
+          tooltip.textContent = flashcardData[sym]?.name || sym;
+          tooltip.style.opacity = '1';
+        });
+        
+        el.addEventListener('mouseleave', () => {
+          tooltip.style.opacity = '0';
+        });
+        
         target.appendChild(el);
       });
     }
 
+    // Initialize the table
     renderElements(elements, container);
-    renderElements(lanthanoids, lanthaRow, "lanthanoid");
-    renderElements(actinoids, actinoRow, "actinoid");
+    renderElements(lanthanoids, lanthaRow);
+    renderElements(actinoids, actinoRow);
 
+    // Search functionality
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.toLowerCase();
+      if (query.length < 1) {
+        searchResults.style.display = 'none';
+        return;
+      }
+      
+      const allElements = [...elements, ...lanthanoids, ...actinoids];
+      const results = allElements.filter(([num, sym]) => {
+        const name = flashcardData[sym]?.name.toLowerCase() || '';
+        return (
+          sym.toLowerCase().includes(query) ||
+          name.includes(query) ||
+          num.toString().includes(query)
+        );
+      }).slice(0, 10);
+      
+      if (results.length > 0) {
+        searchResults.innerHTML = results.map(([num, sym]) => {
+          const name = flashcardData[sym]?.name || sym;
+          return `<div class="search-item" data-symbol="${sym}">${sym} - ${name} (${num})</div>`;
+        }).join('');
+        searchResults.style.display = 'block';
+      } else {
+        searchResults.innerHTML = '<div class="search-item">No results found</div>';
+        searchResults.style.display = 'block';
+      }
+    });
+
+    // Handle search result selection
+    searchResults.addEventListener('click', (e) => {
+      if (e.target.classList.contains('search-item')) {
+        const symbol = e.target.dataset.symbol;
+        if (symbol) {
+          showFlashcard(symbol);
+          searchInput.value = '';
+          searchResults.style.display = 'none';
+        }
+      }
+    });
+
+    // Close search results when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
+      }
+    });
+
+    // Theme toggle
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+    });
+
+    // Check for saved theme preference
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    // Flashcard functions
     function showFlashcard(symbol) {
       const data = flashcardData[symbol];
       const overlay = document.getElementById("flashcard-overlay");
-      const card = document.getElementById("flashcard");
+      const cardContent = document.getElementById("flashcard-content");
 
       if (data) {
-        card.innerHTML = `
-          <span class="flashcard-close" onclick="closeFlashcard()">✖</span>
+        cardContent.innerHTML = `
           <h3>${data.name} (${symbol})</h3>
           <div class="element-image">
-            <img src="${data.image}" alt="${data.name}" />
+            <img src="${data.image}" alt="${data.name}" onerror="this.src='https://via.placeholder.com/200?text=No+Image'"/>
           </div>
-          <p><strong>Atomic Number:</strong> ${data.number}</p>
-          <p><strong>Type:</strong> ${data.type}</p>
-          <p><strong>Standard State:</strong> ${data.state}</p>
-          <p><strong>Atomic Mass:</strong> ${data.mass}</p>
-          <p><strong>Electron Configuration:</strong> ${data.config}</p>
-          <p><strong>Oxidation States:</strong> ${data.oxidation}</p>
-          <p><strong>Electronegativity:</strong> ${data.electronegativity}</p>
-          <p><strong>Atomic Radius:</strong> ${data.radius}</p>
-          <p><strong>Ionization Energy:</strong> ${data.ionization}</p>
-          <p><strong>Electron Affinity:</strong> ${data.affinity}</p>
-          <p><strong>Melting Point:</strong> ${data.melting}</p>
-          <p><strong>Boiling Point:</strong> ${data.boiling}</p>
-          <p><strong>Density:</strong> ${data.density}</p>
-          <p><strong>Year Discovered:</strong> ${data.discovered}</p>
-          <hr />
-          <p><strong>More about ${data.name}:</strong></p>
-          <ul>
-            <li><a href="${data.wiki}" target="_blank">Wikipedia</a></li>
-            <li><a href="https://www.lenntech.com/periodic/elements/${symbol.toLowerCase()}.htm" target="_blank">Lenntech</a></li>
-            <li><a href="https://www.webelements.com/${data.name.toLowerCase()}/" target="_blank">WebElements</a></li>
-          </ul>
+          <div class="property-grid">
+            <div class="property">
+              <span class="property-label">Atomic Number:</span>
+              <span class="property-value">${data.number}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Atomic Mass:</span>
+              <span class="property-value">${data.mass}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Category:</span>
+              <span class="property-value">${data.type}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">State:</span>
+              <span class="property-value">${data.state}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Electron Configuration:</span>
+              <span class="property-value">${data.config}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Oxidation States:</span>
+              <span class="property-value">${data.oxidation}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Electronegativity:</span>
+              <span class="property-value">${data.electronegativity}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Atomic Radius:</span>
+              <span class="property-value">${data.radius}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Ionization Energy:</span>
+              <span class="property-value">${data.ionization}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Electron Affinity:</span>
+              <span class="property-value">${data.affinity}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Melting Point:</span>
+              <span class="property-value">${data.melting}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Boiling Point:</span>
+              <span class="property-value">${data.boiling}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Density:</span>
+              <span class="property-value">${data.density}</span>
+            </div>
+            <div class="property">
+              <span class="property-label">Discovered:</span>
+              <span class="property-value">${data.discovered}</span>
+            </div>
+          </div>
+          <div class="flashcard-links">
+            <a href="${data.wiki}" target="_blank" class="flashcard-link">Wikipedia</a>
+            <a href="https://www.lenntech.com/periodic/elements/${symbol.toLowerCase()}.htm" target="_blank" class="flashcard-link">Lenntech</a>
+            <a href="https://www.webelements.com/${data.name.toLowerCase()}/" target="_blank" class="flashcard-link">WebElements</a>
+          </div>
         `;
       } else {
-        card.innerHTML = `<p>No data available for ${symbol}</p>`;
+        cardContent.innerHTML = `<p>No data available for ${symbol}</p>`;
       }
 
       overlay.style.display = "flex";
@@ -279,6 +645,7 @@
       document.getElementById("flashcard-overlay").style.display = "none";
     }
 
+    // Close flashcard when clicking outside
     document.getElementById("flashcard-overlay").addEventListener("click", (e) => {
       const card = document.getElementById("flashcard");
       if (!card.contains(e.target)) {
@@ -286,11 +653,21 @@
       }
     });
 
+    // Close flashcard with Escape key
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         closeFlashcard();
       }
     });
+
+    // Highlight element when searching
+    function highlightElement(symbol) {
+      const allElements = document.querySelectorAll('.element');
+      allElements.forEach(el => {
+        el.style.boxShadow = el.dataset.symbol === symbol ? 
+          '0 0 15px #8a2be2' : 'none';
+      });
+    }
   </script>
 </body>
 </html>
